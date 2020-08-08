@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Text, FlatList,TouchableOpacity } from 'react-native';
-import { ListItem } from 'react-native-elements'
+import ListItem from 'react-native-elements'
 import MyHeader from '../components/MyHeader';
 
 import db from '../config'
