@@ -1,9 +1,10 @@
 import React from 'react';
-import { createAppContainer, createSwitchNavigator,} from 'react-navigation';
+import { StyleSheet, Text, View, Image } from 'react-native';
+import { createAppContainer, createSwitchNavigator} from 'react-navigation';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
-
-import SignUpLoginScreen from './screens/SignUpLoginScreen';
-import { AppTabNavigator } from './components/AppTabNavigator'
+import WelcomeScreen from './screens/WelcomeScreen';
+import HomeScreen from './screens/HomeScreen'
+import Exchange from './screens/ExchangeScreen';
 
 export default function App() {
   return (
@@ -11,10 +12,39 @@ export default function App() {
   );
 }
 
+const TabNavigator = createBottomTabNavigator({
+    HomeScreen: {screen: HomeScreen},
+    Exchange: {screen: Exchange},
+  },
+  {
+    defaultNavigationOptions: ({navigation})=>({
+      tabBarIcon: ()=>{
+        const routeName = navigation.state.routeName;
+        if(routeName === "HomeScreen"){
+          return(
+            <Image
+            source={require("./assets/home-icon.png")}
+            style={{width:20, height:20}}
+          />
+          )
+
+        }
+        else if(routeName === "Exchange"){
+          return(
+            <Image
+            source={require("./assets/ads-icon.png")}
+            style={{width:20, height:20,}}
+          />)
+
+        }
+      }
+    })
+  }
+);
 
 const switchNavigator = createSwitchNavigator({
-  SignUpLoginScreen:{screen: SignUpLoginScreen},
-  BottomTab:{screen: AppTabNavigator}
+  WelcomeScreen:{screen: WelcomeScreen},
+  BottomTab:{screen: TabNavigator}
 })
 
 const AppContainer =  createAppContainer(switchNavigator);
