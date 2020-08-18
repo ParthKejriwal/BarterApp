@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import { View, StyleSheet, Text, FlatList,TouchableOpacity } from 'react-native';
 import ListItem from 'react-native-elements'
 import MyHeader from '../components/MyHeader';
-
+import firebase from 'firebase';
 import db from '../config'
 
 export default class HomeScreen extends Component{
   constructor(){
     super()
     this.state = {
+      userId  : firebase.auth().currentUser.email,
       allRequests : []
     }
   this.requestRef= null
@@ -25,6 +26,14 @@ export default class HomeScreen extends Component{
     })
   }
 
+  componentDidMount(){
+    this.getAllRequests()
+  }
+
+  componentWillUnmount(){
+    this.requestRef();
+  }
+
   keyExtractor = (item, index) => index.toString()
 
   renderItem = ( {item, i} ) =>{
@@ -36,21 +45,16 @@ export default class HomeScreen extends Component{
         subtitle={item.description}
         titleStyle={{ color: 'black', fontWeight: 'bold' }}
         rightElement={
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button}
+            onPress ={()=>{
+              this.props.navigation.navigate("RecieverDetails",{"details": item})
+            }}>
               <Text style={{color:'#ffff'}}>Exchange</Text>
             </TouchableOpacity>
           }
         bottomDivider
       />
     )
-  }
-
-  componentDidMount(){
-    this.getAllRequests()
-  }
-
-  componentWillUnmount(){
-    this.requestRef();
   }
 
   render(){
