@@ -5,27 +5,58 @@ import MyHeader from '../components/MyHeader.js'
 import firebase from 'firebase';
 import db from '../config.js'
 
-export default class MyDonationScreen extends Component {
-  static navigationOptions = { header: null };
-
+export default class MyBarterScreen extends Component {
    constructor(){
      super()
      this.state = {
-       userId : firebase.auth().currentUser.email,
-       allExchanges : []
+       donorId : firebase.auth().currentUser.email,
+       donorName : "",
+       allBarters : []
      }
      this.requestRef= null
    }
 
+   static navigationOptions = { header: null };
 
-   getAllExchanges =()=>{
-     this.requestRef = db.collection("all_exchanges").where("donor_id" ,'==', this.state.userId)
-     .onSnapshot((snapshot)=>{
-       var allExchanges = snapshot.docs.map(document => document.data());
-       this.setState({
-         allExchanges : allExchanges,
+   getDonorDetails=(donorId)=>{
+     db.collection("Users").where("email_id","==", donorId).get()
+     .then((snapshot)=>{
+       snapshot.forEach((doc) => {
+         this.setState({
+           "donorName" : doc.data().first_name + " " + doc.data().last_name
+         })
        });
      })
+   }
+
+   getAllBarters =()=>{
+     this.requestRef = db.collection("all_barters").where("donor_id" ,'==', this.state.donorId)
+     .onSnapshot((snapshot)=>{
+       var allBarters = []
+       snapshot.docs.map((doc) =>{
+         var donation = doc.data()
+         donation["doc_id"] = doc.id
+         allBarters.push(donation)
+       });
+       this.setState({
+         allBarters : allBarters
+       });
+     })
+   }
+
+   sendItem=(bookDetails)=>{
+     if(itemDetails.request_status === "Item Sent"){
+       var requestStatus = "Person Interested"
+       db.collection("all_barters").doc(itemDetails.doc_id).update({
+         "request_status" : "Person Interested"
+       })
+     }
+     else{
+       var requestStatus = "Item Sent"
+       db.collection("all_barters").doc(itemDetails.doc_id).update({
+         "request_status" : "Item Sent"
+       })
+     }
    }
 
    keyExtractor = (item, index) => index.toString()
@@ -33,13 +64,25 @@ export default class MyDonationScreen extends Component {
    renderItem = ( {item, i} ) =>(
      <ListItem
        key={i}
-       title={item.book_name}
+       title={item.item_name}
        subtitle={"Requested By : " + item.requested_by +"\nStatus : " + item.request_status}
-       leftElement={<Icon name="book" type="font-awesome" color ='#696969'/>}
+       leftElement={<Icon name="item" type="font-awesome" color ='#696969'/>}
        titleStyle={{ color: 'black', fontWeight: 'bold' }}
        rightElement={
-           <TouchableOpacity style={styles.button}>
-             <Text style={{color:'#ffff'}}>Send Item</Text>
+           <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor : item.request_status === "Item Sent" ? "green" : "#ff5722"
+              }
+            ]}
+            onPress = {()=>{
+              this.sendItem(item)
+            }}
+           >
+             <Text style={{color:'#ffff'}}>{
+               item.request_status === "Item Sent" ? "Item Sent" : "Send Item"
+             }</Text>
            </TouchableOpacity>
          }
        bottomDivider
@@ -48,7 +91,8 @@ export default class MyDonationScreen extends Component {
 
 
    componentDidMount(){
-     this.getAllExchanges()
+     this.getDonorDetails(this.state.donorId)
+     this.getAllBarters()
    }
 
    componentWillUnmount(){
@@ -61,16 +105,16 @@ export default class MyDonationScreen extends Component {
          <MyHeader navigation={this.props.navigation} title="My Barters"/>
          <View style={{flex:1}}>
            {
-             this.state.allExchanges.length === 0
+             this.state.allBarters.length === 0
              ?(
                <View style={styles.subtitle}>
-                 <Text style={{ fontSize: 20}}>List of all item Exchanges</Text>
+                 <Text style={{ fontSize: 20}}>List of all item Barters</Text>
                </View>
              )
              :(
                <FlatList
                  keyExtractor={this.keyExtractor}
-                 data={this.state.allExchanges}
+                 data={this.state.allBarters}
                  renderItem={this.renderItem}
                />
              )
@@ -88,7 +132,6 @@ const styles = StyleSheet.create({
     height:30,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:"#ff5722",
     shadowColor: "#000",
     shadowOffset: {
        width: 0,

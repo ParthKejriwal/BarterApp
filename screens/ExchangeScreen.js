@@ -1,101 +1,96 @@
 import React,{Component} from 'react';
-import { View, StyleSheet, Text, TextInput,KeyboardAvoidingView,TouchableOpacity,Alert, ToastAndroid } from 'react-native';
-import firebase from 'firebase';
+import {
+  View,
+  Text,
+  TextInput,
+  KeyboardAvoidingView,
+  StyleSheet,
+  TouchableOpacity,
+  Alert} from 'react-native';
 import db from '../config';
+import firebase from 'firebase';
 import MyHeader from '../components/MyHeader'
 
-export default class Exchange extends Component{
-
+export default class ExchangeScreen extends Component{
   constructor(){
-    super()
-    this.state = {
-      userName : firebase.auth().currentUser.email,
-      itemName : "",
-      description : ""
+    super();
+    this.state ={
+      userId : firebase.auth().currentUser.email,
+      itemName:"",
+      description:""
     }
   }
 
-  addItem=(itemName, description)=>{
-    var userName = this.state.userName
-    db.collection("exchange_requests").add({
-      "username"    : userName,
-      "item_name"   : itemName,
-      "description" : description
-     })
-     this.setState({
-       itemName : '',
-       description :''
-     })
-
-     this.setState({
-       itemName : '',
-       description :''
-     })
-
-     // NOTE: Comment below return statement when you test the app in ios
-     // ToastAndroid.showWithGravityAndOffset('Item ready to exchange',
-     //    ToastAndroid.SHORT,
-     //  );
-     // return this.props.navigation.navigate('HomeScreen')
-
-     // NOTE:  Comment the below return statement when you test the app in android
-     return Alert.alert(
-          'Item ready to exchange',
-          '',
-          [
-            {text: 'OK', onPress: () => {
-
-              this.props.navigation.navigate('HomeScreen')
-            }}
-          ]
-      );
+  createUniqueId(){
+    return Math.random().toString(36).substring(7);
   }
 
+
+
+  addRequest =(itemName,description)=>{
+    var userId = this.state.userId
+    var randomRequestId = this.createUniqueId()
+    db.collection('requested_items').add({
+        "user_id": userId,
+        "item_name":itemName,
+        "description":description,
+        "request_id"  : randomRequestId,
+    })
+
+    this.setState({
+        itemName :'',
+        description : ''
+    })
+
+    return Alert.alert("Item Requested Successfully")
+  }
 
 
   render(){
     return(
-      <View style={{flex:1}}>
-      <MyHeader title="Add Item"/>
-      <KeyboardAvoidingView style={{flex:1,justifyContent:'center', alignItems:'center'}}>
-        <TextInput
-          style={styles.formTextInput}
-          placeholder ={"Item Name"}
-          maxLength ={8}
-          onChangeText={(text)=>{
-            this.setState({
-              itemName: text
-            })
-          }}
-          value={this.state.itemName}
-        />
-        <TextInput
-          multiline
-          numberOfLines={4}
-          style={[styles.formTextInput,{height:100}]}
-          placeholder ={"Description"}
-          onChangeText={(text)=>{
-            this.setState({
-              description: text
-            })
-          }}
-          value={this.state.description}
-
-        />
-        <TouchableOpacity
-          style={[styles.button,{marginTop:10}]}
-          onPress = {()=>{this.addItem(this.state.itemName, this.state.description)}}
-          >
-          <Text style={{color:'#ffff', fontSize:18, fontWeight:'bold'}}>Add Item</Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-      </View>
+        <View style={{flex:1}}>
+          <MyHeader title="Request Item" navigation ={this.props.navigation}/>
+            <KeyboardAvoidingView style={styles.keyBoardStyle}>
+              <TextInput
+                style ={styles.formTextInput}
+                placeholder={"enter item name"}
+                onChangeText={(text)=>{
+                    this.setState({
+                        itemName:text
+                    })
+                }}
+                value={this.state.itemName}
+              />
+              <TextInput
+                style ={[styles.formTextInput,{height:300}]}
+                multiline
+                numberOfLines ={8}
+                placeholder={"Describe the item in detail"}
+                onChangeText ={(text)=>{
+                    this.setState({
+                        description:text
+                    })
+                }}
+                value ={this.state.description}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={()=>{this.addRequest(this.state.itemName,this.state.description)}}
+                >
+                <Text>Request</Text>
+              </TouchableOpacity>
+            </KeyboardAvoidingView>
+        </View>
     )
   }
 }
 
-
 const styles = StyleSheet.create({
+  keyBoardStyle : {
+    flex:1,
+    alignItems:'center',
+    justifyContent:'center'
+  },
   formTextInput:{
     width:"75%",
     height:35,
@@ -104,7 +99,7 @@ const styles = StyleSheet.create({
     borderRadius:10,
     borderWidth:1,
     marginTop:20,
-    padding:10
+    padding:10,
   },
   button:{
     width:"75%",
@@ -121,6 +116,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.44,
     shadowRadius: 10.32,
     elevation: 16,
-  },
-
-})
+    marginTop:20
+    },
+  }
+)

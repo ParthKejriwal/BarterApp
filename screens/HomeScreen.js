@@ -1,33 +1,32 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Text, FlatList,TouchableOpacity } from 'react-native';
-import ListItem from 'react-native-elements'
-import MyHeader from '../components/MyHeader';
+import { ListItem } from 'react-native-elements'
 import firebase from 'firebase';
 import db from '../config'
+import MyHeader from '../components/MyHeader';
 
 export default class HomeScreen extends Component{
   constructor(){
     super()
     this.state = {
       userId  : firebase.auth().currentUser.email,
-      allRequests : []
+      reqestedItemsList : []
     }
   this.requestRef= null
   }
 
-  getAllRequests =()=>{
-    this.requestRef = db.collection("exchange_requests")
+  getRequestedItemsList =()=>{
+    this.requestRef = db.collection("requested_items")
     .onSnapshot((snapshot)=>{
-      var allRequests = []
-      snapshot.forEach((doc) => {
-          allRequests.push(doc.data())
-      })
-      this.setState({allRequests:allRequests})
+      var reqestedItemsList = snapshot.docs.map((doc) => doc.data())
+      this.setState({
+        reqestedItemsList : reqestedItemsList
+      });
     })
   }
 
   componentDidMount(){
-    this.getAllRequests()
+    this.getRequestedItemsList()
   }
 
   componentWillUnmount(){
@@ -37,7 +36,6 @@ export default class HomeScreen extends Component{
   keyExtractor = (item, index) => index.toString()
 
   renderItem = ( {item, i} ) =>{
-    console.log(item.item_name);
     return (
       <ListItem
         key={i}
@@ -46,10 +44,11 @@ export default class HomeScreen extends Component{
         titleStyle={{ color: 'black', fontWeight: 'bold' }}
         rightElement={
             <TouchableOpacity style={styles.button}
-            onPress ={()=>{
-              this.props.navigation.navigate("RecieverDetails",{"details": item})
-            }}>
-              <Text style={{color:'#ffff'}}>Exchange</Text>
+              onPress ={()=>{
+                this.props.navigation.navigate("RecieverDetails",{"details": item})
+              }}
+              >
+              <Text style={{color:'#ffff'}}>View</Text>
             </TouchableOpacity>
           }
         bottomDivider
@@ -60,19 +59,19 @@ export default class HomeScreen extends Component{
   render(){
     return(
       <View style={{flex:1}}>
-        <MyHeader title="Barter App"/>
+        <MyHeader title="Exchange Items" navigation ={this.props.navigation}/>
         <View style={{flex:1}}>
           {
-            this.state.allRequests.length === 0
+            this.state.reqestedItemsList.length === 0
             ?(
-              <View style={{flex:1, fontSize: 20, justifyContent:'center', alignItems:'center'}}>
-                <Text style={{ fontSize: 20}}>List of all Barter</Text>
+              <View style={styles.subContainer}>
+                <Text style={{ fontSize: 20}}>List Of All Requested Items</Text>
               </View>
             )
             :(
               <FlatList
                 keyExtractor={this.keyExtractor}
-                data={this.state.allRequests}
+                data={this.state.reqestedItemsList}
                 renderItem={this.renderItem}
               />
             )
@@ -84,6 +83,11 @@ export default class HomeScreen extends Component{
 }
 
 const styles = StyleSheet.create({
+  subContainer:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center'
+  },
   button:{
     width:100,
     height:30,
