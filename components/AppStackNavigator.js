@@ -13,12 +13,6 @@ export const AppStackNavigator = createStackNavigator({
     navigationOptions:{
       headerShown : false
     }
-  },
-  RecieverDetails : {
-    screen : RecieverDetailsScreen,
-    navigationOptions:{
-      headerShown : false
-    }
   }
 },
   {
