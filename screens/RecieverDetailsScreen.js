@@ -65,6 +65,19 @@ export default class RecieverDetailsScreen extends Component{
     })
   }
 
+  addNotification=()=>{
+    var message = this.state.userName + " has shown interest in exchanging the item"
+    db.collection("all_notifications").add({
+      "targeted_user_id"    : this.state.recieverId,
+      "donor_id"            : this.state.userId,
+      "request_id"          : this.state.requestId,
+      "item_name"           : this.state.itemName,
+      "date"                : firebase.firestore.FieldValue.serverTimestamp(),
+      "notificationStatus" : "unread",
+      "message"             : message
+    })
+  }
+
   componentDidMount(){
     this.getRecieverDetails()
     this.getUserDetails(this.state.userId)
@@ -118,6 +131,7 @@ export default class RecieverDetailsScreen extends Component{
                     style={styles.button}
                     onPress={()=>{
                       this.updateItemStatus()
+                      this.addNotification()
                       this.props.navigation.navigate('MyBarterScreen')
                     }}>
                   <Text>I want to Exchange</Text>

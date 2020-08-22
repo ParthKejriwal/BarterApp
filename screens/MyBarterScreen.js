@@ -45,19 +45,46 @@ export default class MyBarterScreen extends Component {
    }
 
    sendItem=(bookDetails)=>{
-     if(itemDetails.request_status === "Item Sent"){
-       var requestStatus = "Person Interested"
-       db.collection("all_barters").doc(itemDetails.doc_id).update({
-         "request_status" : "Person Interested"
-       })
-     }
-     else{
-       var requestStatus = "Item Sent"
-       db.collection("all_barters").doc(itemDetails.doc_id).update({
-         "request_status" : "Item Sent"
-       })
-     }
-   }
+    if(bookDetails.request_status === "Item Sent"){
+      var requestStatus = "Person Interested"
+      db.collection("all_barters").doc(itemDetails.doc_id).update({
+        "request_status" : "Person Interested"
+      })
+      this.sendNotification(itemDetails,requestStatus)
+    }
+    else{
+      var requestStatus = "Item Sent"
+      db.collection("all_barters").doc(itemDetails.doc_id).update({
+        "request_status" : "Item Sent"
+      })
+      this.sendNotification(itemDetails,requestStatus)
+    }
+  }
+
+  sendNotification=(itemDetails,requestStatus)=>{
+    var requestId = itemDetails.request_id
+    var donorId = itemDetails.donor_id
+    db.collection("all_notifications")
+    .where("request_id","==", requestId)
+    .where("donor_id","==",donorId)
+    .get()
+    .then((snapshot)=>{
+      snapshot.forEach((doc) => {
+        var message = ""
+        if(requestStatus === "Item Sent"){
+          message = this.state.donorName + " sent you item"
+        }else{
+           message =  this.state.donorName  + " has shown interest in exchanging the item"
+        }
+        db.collection("all_notifications").doc(doc.id).update({
+          "message": message,
+          "notificationStatus" : "unread",
+          "date"                : firebase.firestore.FieldValue.serverTimestamp()
+        })
+      });
+    })
+  }
+
 
    keyExtractor = (item, index) => index.toString()
 
