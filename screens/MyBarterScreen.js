@@ -5,13 +5,13 @@ import MyHeader from '../components/MyHeader.js'
 import firebase from 'firebase';
 import db from '../config.js'
 
-export default class MyBarterScreen extends Component {
+export default class MyDonationScreen extends Component {
    constructor(){
      super()
      this.state = {
        donorId : firebase.auth().currentUser.email,
        donorName : "",
-       allBarters : []
+       allbarters : []
      }
      this.requestRef= null
    }
@@ -19,11 +19,11 @@ export default class MyBarterScreen extends Component {
    static navigationOptions = { header: null };
 
    getDonorDetails=(donorId)=>{
-     db.collection("Users").where("email_id","==", donorId).get()
+     db.collection("Users").where("username","==", donorId).get()
      .then((snapshot)=>{
        snapshot.forEach((doc) => {
          this.setState({
-           "donorName" : doc.data().first_name + " " + doc.data().last_name
+           "donorName" : doc.data().firstName + " " + doc.data().lastName
          })
        });
      })
@@ -32,59 +32,58 @@ export default class MyBarterScreen extends Component {
    getAllBarters =()=>{
      this.requestRef = db.collection("all_barters").where("donor_id" ,'==', this.state.donorId)
      .onSnapshot((snapshot)=>{
-       var allBarters = []
+       var allbarters = []
        snapshot.docs.map((doc) =>{
-         var donation = doc.data()
-         donation["doc_id"] = doc.id
-         allBarters.push(donation)
+         var barter = doc.data()
+         barter["doc_id"] = doc.id
+         allbarters.push(barter)
        });
        this.setState({
-         allBarters : allBarters
+         allbarters : allbarters
        });
      })
    }
 
-   sendItem=(bookDetails)=>{
-    if(bookDetails.request_status === "Item Sent"){
-      var requestStatus = "Person Interested"
-      db.collection("all_barters").doc(itemDetails.doc_id).update({
-        "request_status" : "Person Interested"
-      })
-      this.sendNotification(itemDetails,requestStatus)
-    }
-    else{
-      var requestStatus = "Item Sent"
-      db.collection("all_barters").doc(itemDetails.doc_id).update({
-        "request_status" : "Item Sent"
-      })
-      this.sendNotification(itemDetails,requestStatus)
-    }
-  }
+   sendItem=(itemDetails)=>{
+     if(itemDetails.request_status === "Item Sent"){
+       var requestStatus = "Donor Interested"
+       db.collection("all_barters").doc(itemDetails.doc_id).update({
+         "request_status" : "Donor Interested"
+       })
+       this.sendNotification(itemDetails,requestStatus)
+     }
+     else{
+       var requestStatus = "Item Sent"
+       db.collection("all_barters").doc(itemDetails.doc_id).update({
+         "request_status" : "Item Sent"
+       })
+       this.sendNotification(itemDetails,requestStatus)
+     }
+   }
 
-  sendNotification=(itemDetails,requestStatus)=>{
-    var requestId = itemDetails.request_id
-    var donorId = itemDetails.donor_id
-    db.collection("all_notifications")
-    .where("request_id","==", requestId)
-    .where("donor_id","==",donorId)
-    .get()
-    .then((snapshot)=>{
-      snapshot.forEach((doc) => {
-        var message = ""
-        if(requestStatus === "Item Sent"){
-          message = this.state.donorName + " sent you item"
-        }else{
-           message =  this.state.donorName  + " has shown interest in exchanging the item"
-        }
-        db.collection("all_notifications").doc(doc.id).update({
-          "message": message,
-          "notificationStatus" : "unread",
-          "date"                : firebase.firestore.FieldValue.serverTimestamp()
-        })
-      });
-    })
-  }
-
+   sendNotification=(itemDetails,requestStatus)=>{
+     var requestId = itemDetails.request_id
+     var donorId = itemDetails.donor_id
+     db.collection("all_notifications")
+     .where("request_id","==", requestId)
+     .where("donor_id","==",donorId)
+     .get()
+     .then((snapshot)=>{
+       snapshot.forEach((doc) => {
+         var message = ""
+         if(requestStatus === "Item Sent"){
+           message = this.state.donorName + " sent you item"
+         }else{
+            message =  this.state.donorName  + " has shown interest in exchanging the item"
+         }
+         db.collection("all_notifications").doc(doc.id).update({
+           "message": message,
+           "notificationStatus" : "unread",
+           "date"                : firebase.firestore.FieldValue.serverTimestamp()
+         })
+       });
+     })
+   }
 
    keyExtractor = (item, index) => index.toString()
 
@@ -93,14 +92,14 @@ export default class MyBarterScreen extends Component {
        key={i}
        title={item.item_name}
        subtitle={"Requested By : " + item.requested_by +"\nStatus : " + item.request_status}
-       leftElement={<Icon name="item" type="font-awesome" color ='#696969'/>}
+       leftElement={<Icon name="book" type="font-awesome" color ='#696969'/>}
        titleStyle={{ color: 'black', fontWeight: 'bold' }}
        rightElement={
            <TouchableOpacity
             style={[
               styles.button,
               {
-                backgroundColor : item.request_status === "Item Sent" ? "green" : "#ff5722"
+                backgroundColor : item.request_status === "Book Sent" ? "green" : "#ff5722"
               }
             ]}
             onPress = {()=>{
@@ -132,7 +131,7 @@ export default class MyBarterScreen extends Component {
          <MyHeader navigation={this.props.navigation} title="My Barters"/>
          <View style={{flex:1}}>
            {
-             this.state.allBarters.length === 0
+             this.state.allbarters.length === 0
              ?(
                <View style={styles.subtitle}>
                  <Text style={{ fontSize: 20}}>List of all item Barters</Text>
@@ -141,7 +140,7 @@ export default class MyBarterScreen extends Component {
              :(
                <FlatList
                  keyExtractor={this.keyExtractor}
-                 data={this.state.allBarters}
+                 data={this.state.allbarters}
                  renderItem={this.renderItem}
                />
              )
