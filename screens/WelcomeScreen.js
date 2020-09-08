@@ -42,7 +42,7 @@ export default class WelcomeScreen extends Component {
           mobileNo:this.state.mobileNumber,
           username:this.state.username,
           address:this.state.address,
-          isBookRequestActive:'false'
+          isItemRequestActive:'false'
         })
         return  Alert.alert(
              'User Added Successfully',
